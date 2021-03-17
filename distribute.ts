@@ -1,19 +1,13 @@
 import lineReader from 'line-reader'
 import { BigNumber } from 'bignumber.js'
 import { Utils } from '@tacoinfra/harbinger-lib'
-import fetch from 'node-fetch'
-import { getLogger } from 'loglevel'
-import {
-  registerFetch,
-  registerLogger,
-} from 'conseiljs'
 import { TezosToolkit } from '@taquito/taquito'
 import { InMemorySigner } from '@taquito/signer';
 import * as fs from 'fs';
 
 const DISTRIBUTION_FILE = "airdrop.csv"
 const NODE_URL = " https://mainnet-tezos.giganode.io"
-const CONTRACT_ADDRESS = ""
+const CONTRACT_ADDRESS = "KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea"
 
 // Load private key
 const privateKeyName = 'STKR_AIRDROP_PRIVATE_KEY'
@@ -36,12 +30,6 @@ type CompletedAirDrop = {
 }
 
 const main = async () => {
-  const logger = getLogger('conseiljs')
-  logger.setLevel('debug', false)
-
-  registerLogger(logger)
-  registerFetch(fetch)
-
   // Load a signer
   const tezos = new TezosToolkit('https://YOUR_PREFERRED_RPC_URL');
   const signer = new InMemorySigner(privateKey)
@@ -82,21 +70,30 @@ const main = async () => {
   // Iterate over each airdop and carry out the drop.
   const completedOps: Array<CompletedAirDrop> = []
   for (let i = 0; i < drops.length; i++) {
-    console.log(`>> Processing ${i + 1} of ${drops.length}`)
-    const drop = drops[i]
-    console.log(`>> Sending ${drop.amount} to ${drop.address}`)
+    try {
+      console.log(`>> Processing ${i + 1} of ${drops.length}`)
+      const drop = drops[i]
+      console.log(`>> Sending ${drop.amount} to ${drop.address}`)
 
-    const result = await tokenContract.methods.transfer(signer.publicKeyHash, drop.address, drop.amount).send({ amount: 0, mutez: true })
+      const result = await tokenContract.methods.transfer(signer.publicKeyHash, drop.address, drop.amount).send({ amount: 0, mutez: true })
 
-    completedOps.push({
-      address: drop.address,
-      amount: drop.amount,
-      operationHash: result.hash
-    })
-    console.log(`>> Sent in hash ${result.hash}. Waiting for 1 confirmation.`)
+      completedOps.push({
+        address: drop.address,
+        amount: drop.amount,
+        operationHash: result.hash
+      })
+      console.log(`>> Sent in hash ${result.hash}. Waiting for 1 confirmation.`)
 
-    await result.confirmation(1)
-    console.log(`>> Confirmed.`)
+      await result.confirmation(1)
+      console.log(`>> Confirmed.`)
+    } catch (e) {
+      console.log(``)
+      console.log(`-----------------------------------------------`)
+      console.log(`Unexpected error: ${e}`)
+      console.log(`Please verify that ${drops[i].address} received ${drops[i].amount}`)
+      console.log(`-----------------------------------------------`)
+      console.log(``)
+    }
   }
 
   // Print results to file
