@@ -6,8 +6,8 @@ import { InMemorySigner } from '@taquito/signer';
 import * as fs from 'fs';
 
 const DISTRIBUTION_FILE = "airdrop.csv"
-const NODE_URL = " https://mainnet-tezos.giganode.io"
-const CONTRACT_ADDRESS = "KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea"
+const NODE_URL = "https://delphinet.smartpy.io/" // "https://mainnet-tezos.giganode.io"
+const CONTRACT_ADDRESS = "KT19UypipJWENBavh34Wn7tc67bL1HucZh9W" //"KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea"
 
 // Load private key
 const privateKeyName = 'STKR_AIRDROP_PRIVATE_KEY'
@@ -31,7 +31,7 @@ type CompletedAirDrop = {
 
 const main = async () => {
   // Load a signer
-  const tezos = new TezosToolkit('https://YOUR_PREFERRED_RPC_URL');
+  const tezos = new TezosToolkit(NODE_URL);
   const signer = new InMemorySigner(privateKey)
   tezos.setProvider({
     signer
@@ -39,12 +39,12 @@ const main = async () => {
 
   console.log("> Parsing file: " + DISTRIBUTION_FILE)
   console.log("> Using Node: " + NODE_URL)
-  console.log("> Deploying from: " + signer.publicKeyHash)
+  console.log("> Deploying from: " + await signer.publicKeyHash())
   console.log("> Token Contract: " + CONTRACT_ADDRESS)
   console.log("")
 
-  let drops: Array<AirDrop> = []
-  lineReader.eachLine(DISTRIBUTION_FILE, (line) => {
+  const drops: Array<AirDrop> = []
+  fs.readFileSync(DISTRIBUTION_FILE, 'utf-8').split(/\r?\n/).forEach(function (line) {
     const split = line.split(',')
     const trimmed = split.map((input) => {
       return input.trim()
@@ -75,7 +75,7 @@ const main = async () => {
       const drop = drops[i]
       console.log(`>> Sending ${drop.amount} to ${drop.address}`)
 
-      const result = await tokenContract.methods.transfer(signer.publicKeyHash, drop.address, drop.amount).send({ amount: 0, mutez: true })
+      const result = await tokenContract.methods.transfer(await signer.publicKeyHash(), drop.address, drop.amount).send({ amount: 0, mutez: true })
 
       completedOps.push({
         address: drop.address,
@@ -86,6 +86,7 @@ const main = async () => {
 
       await result.confirmation(1)
       console.log(`>> Confirmed.`)
+      console.log(``)
     } catch (e) {
       console.log(``)
       console.log(`-----------------------------------------------`)
