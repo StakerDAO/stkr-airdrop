@@ -76,17 +76,17 @@ const main = async () => {
       console.log(`>> Sending ${drop.amount} to ${drop.address}`)
 
       const result = await tokenContract.methods.transfer(await signer.publicKeyHash(), drop.address, drop.amount).send({ amount: 0, mutez: true })
+      console.log(`>> Sent in hash ${result.hash}. Waiting for 1 confirmation.`)
+
+      await result.confirmation(1)
+      console.log(`>> Confirmed.`)
+      console.log(``)
 
       completedOps.push({
         address: drop.address,
         amount: drop.amount,
         operationHash: result.hash
       })
-      console.log(`>> Sent in hash ${result.hash}. Waiting for 1 confirmation.`)
-
-      await result.confirmation(1)
-      console.log(`>> Confirmed.`)
-      console.log(``)
     } catch (e) {
       console.log(``)
       console.log(`-----------------------------------------------`)
