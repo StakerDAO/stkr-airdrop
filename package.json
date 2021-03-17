@@ -10,8 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tacoinfra/harbinger-lib": "^1.7.1",
+    "@taquito/signer": "^8.0.6-beta.0",
     "@taquito/taquito": "^8.0.6-beta.0",
     "@types/node": "^14.14.35",
+    "bignumber.js": "^9.0.1",
+    "csv-parse": "^4.15.3",
+    "line-reader": "^0.4.0",
     "taquito": "^1.0.0",
     "web-request": "^1.0.7"
   }
