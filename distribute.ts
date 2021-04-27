@@ -8,6 +8,7 @@ import * as fs from 'fs';
 const DISTRIBUTION_FILE = "airdrop.csv"
 const NODE_URL = "https://delphinet.smartpy.io/" // "https://mainnet-tezos.giganode.io"
 const CONTRACT_ADDRESS = "KT19UypipJWENBavh34Wn7tc67bL1HucZh9W" //"KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea"
+const TOKEN_ID = 0 // FOR FA2 TOKENS ONLY
 
 // Load private key
 const privateKeyName = 'STKR_AIRDROP_PRIVATE_KEY'
@@ -60,7 +61,7 @@ const main = async () => {
   }, new BigNumber("0"))
 
   // Sanity Check
-  console.log("> About to distribute " + total.toFixed() + " STRK?")
+  console.log("> About to distribute " + total.toFixed() + " STKR?")
   console.log("> Sleeping for 120secs while you ponder that.")
   await Utils.sleep(120)
 
@@ -75,9 +76,13 @@ const main = async () => {
       const drop = drops[i]
       console.log(`>> Sending ${drop.amount} to ${drop.address}`)
 
+      // FA1.2 - COMMENT IF NOT IN USE
       const result = await tokenContract.methods.transfer(await signer.publicKeyHash(), drop.address, drop.amount).send({ amount: 0, mutez: true })
-      console.log(`>> Sent in hash ${result.hash}. Waiting for 1 confirmation.`)
 
+      // FA2 - UNCOMMENT TO USE
+      // const result = await tokenContract.methods.transfer([{ from_: await signer.publicKeyHash(), txs: [{ to_: drop.address, token_id: TOKEN_ID, amount: drop.amount }] }]).send({ amount: 0, mutez: true });
+
+      console.log(`>> Sent in hash ${result.hash}. Waiting for 1 confirmation.`)
       await result.confirmation(1)
       console.log(`>> Confirmed.`)
       console.log(``)
